@@ -38,4 +38,52 @@ class Handler extends ExceptionHandler
             //
         });
     }
+
+    public function render($request, Throwable $exception)
+    {
+        if ($request->is('api/*')) {
+
+            $statusCode = 500;
+            $message = 'Erro interno no servidor.';
+            $errors = [];
+
+            switch (true) {
+
+                case $exception instanceof \Illuminate\Validation\ValidationException:
+                    $statusCode = 422;
+                    $message = 'Erro de validação.';
+                    $errors = $exception->errors();
+                    break;
+
+                case $exception instanceof \Illuminate\Auth\AuthenticationException:
+                    $statusCode = 401;
+                    $message = 'Não autenticado.';
+                    break;
+
+                case $exception instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException:
+                    $statusCode = 404;
+                    $message = 'Rota não encontrada.';
+                    break;
+
+                case $exception instanceof \Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException:
+                    $statusCode = 405;
+                    $message = 'Método não permitido.';
+                    break;
+
+                case $exception instanceof \Exception:
+                    $statusCode = 400;
+                    $message = $exception->getMessage();
+                    break;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+                'data' => null,
+                'errors' => $errors
+            ], $statusCode);
+        }
+
+        return parent::render($request, $exception);
+    }
 }

@@ -1,19 +1,29 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\AuthController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
+Route::prefix('v1')->group(function () {
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+    Route::get('/', function () {
+        return response()->json([
+            'status' => true,
+            'mensagem' => 'API ProLink v1 em funcionamento',
+            'versao' => 'v1'
+        ]);
+    });
+
+    Route::prefix('auth')->group(function () {
+
+        Route::post('registrar', [AuthController::class, 'registrar']);
+        Route::post('login', [AuthController::class, 'login']);
+
+        Route::middleware('auth:api')->group(function () {
+            Route::post('refresh', [AuthController::class, 'refresh']);
+            Route::post('logout', [AuthController::class, 'logout']);
+            Route::get('me', [AuthController::class, 'me']);
+        });
+
+    });
+
 });
