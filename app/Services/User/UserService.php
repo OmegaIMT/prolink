@@ -8,59 +8,66 @@ use Illuminate\Support\Facades\Hash;
 
 class UserService
 {
-    public function listar()
+    public function index()
     {
         return User::with('roles')
             ->orderByDesc('id')
             ->get();
     }
 
-    public function buscar(int $id)
+    public function findByActive()
+    {
+        return User::with('roles')
+            ->where('ativo', true) // se for boolean
+            // ->where('ativo', 'S') // se for char(1)
+            ->orderByDesc('id')
+            ->get();
+    }
+
+    public function findById(int $id)
     {
         return User::with('roles')->findOrFail($id);
     }
 
-    public function criar(array $dados)
+    public function store(array $data)
     {
-        $dados['password'] = Hash::make($dados['password']);
+        $data['password'] = Hash::make($data['password']);
 
-        $user = User::create($dados);
+        $user = User::create($data);
 
-        // Se veio role_id (admin criando)
-        if (!empty($dados['role_id'])) {
-            $user->roles()->attach($dados['role_id']);
+        if (!empty($data['role_id'])) {
+            $user->roles()->attach($data['role_id']);
         } else {
-            // Aplica role padrão (registro público)
             $defaultRole = Role::where('name', Role::DEFAULT_ROLE)->first();
 
             if ($defaultRole) {
                 $user->roles()->attach($defaultRole->id);
             }
-        }        
+        }
 
         return $user->load('roles');
     }
 
-    public function atualizar(int $id, array $dados)
+    public function update(int $id, array $data)
     {
         $user = User::findOrFail($id);
 
-        if (!empty($dados['password'])) {
-            $dados['password'] = Hash::make($dados['password']);
+        if (!empty($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
         } else {
-            unset($dados['password']);
+            unset($data['password']);
         }
 
-        $user->update($dados);
+        $user->update($data);
 
-        if (!empty($dados['role_id'])) {
-            $user->roles()->sync([$dados['role_id']]);
+        if (!empty($data['role_id'])) {
+            $user->roles()->sync([$data['role_id']]);
         }
 
         return $user->load('roles');
     }
 
-    public function deletar(int $id)
+    public function destroy(int $id): void
     {
         $user = User::findOrFail($id);
         $user->delete();

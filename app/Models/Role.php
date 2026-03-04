@@ -16,26 +16,32 @@ class Role extends Model
     [
         'name',
         'description',
-        'status'
+        'ativo'
     ];
 
     protected $appends =
     [
-        'status_desc'
+        'ativo_desc'
     ];
-
-    public function getStatusDescAttribute()
-    {
-        return $this->status ? 'Ativo' : 'Inativo';
-    }
 
     public function users()
     {
         return $this->belongsToMany(User::class, 'role_users', 'roles_id', 'users_id');
     }
 
-    public function permissions()
+    public function permissionRoles()
     {
-        return $this->hasMany(Permission::class, 'role_id', 'id');
+        return $this->hasMany(PermissionRole::class, 'role_id', 'id');
+    }
+    
+    /*
+    |--------------------------------------------------------------------------
+    | ACCESSORS
+    |--------------------------------------------------------------------------
+    */
+
+    public function getAtivoDescAttribute()
+    {
+        return $this->ativo ? 'Ativo' : 'Inativo';
     }
 }

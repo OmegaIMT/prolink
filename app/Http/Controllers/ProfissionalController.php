@@ -3,32 +3,32 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\Base\BaseApiController;
-use App\Http\Requests\AcessoRequest;
-use App\Services\Access\RoleService;
+use App\Http\Requests\ProfissionalRequest;
+use App\Services\ProfissionalService;
 use App\Services\SQL\SQLService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class AcessoController extends BaseApiController
+class ProfissionalController extends BaseApiController
 {
     protected $service, $sqlService;
 
     public function __construct(
-        RoleService $service,
+        ProfissionalService $service,
         SQLService $sqlService
     ) {
         $this->middleware('auth:api');
 
-        $this->middleware('permission:controle_acesso.select')
+        $this->middleware('permission:profissional.select')
             ->only(['index', 'findById', 'findByActive', 'show']);
 
-        $this->middleware('permission:controle_acesso.insert')
+        $this->middleware('permission:profissional.insert')
             ->only('store');
 
-        $this->middleware('permission:controle_acesso.update')
-            ->only(['update', 'setPermission']);
+        $this->middleware('permission:profissional.update')
+            ->only('update');
 
-        $this->middleware('permission:controle_acesso.delete')
+        $this->middleware('permission:profissional.delete')
             ->only('destroy');
 
         $this->service = $service;
@@ -59,24 +59,24 @@ class AcessoController extends BaseApiController
     public function show(Request $request): JsonResponse
     {
         return $this->success(
-            $this->sqlService->execute('role', 'show', $request->all())
+            $this->sqlService->execute('profissional', 'show', $request->all())
         );
     }
 
-    public function store(AcessoRequest $request): JsonResponse
+    public function store(ProfissionalRequest $request): JsonResponse
     {
         return $this->success(
             $this->service->store($request->validated()),
-            'Cargo criado com sucesso.',
+            'Profissional criado com sucesso.',
             201
         );
     }
 
-    public function update(AcessoRequest $request, int $id): JsonResponse
+    public function update(ProfissionalRequest $request, int $id): JsonResponse
     {
         return $this->success(
             $this->service->update($id, $request->validated()),
-            'Cargo atualizado com sucesso.'
+            'Profissional atualizado com sucesso.'
         );
     }
 
@@ -86,20 +86,7 @@ class AcessoController extends BaseApiController
 
         return $this->success(
             null,
-            'Cargo removido com sucesso.'
-        );
-    }
-
-    public function setPermission(Request $request, int $roleId): JsonResponse
-    {
-        $this->service->setPermission(
-            $roleId,
-            $request->permissions ?? []
-        );
-
-        return $this->success(
-            null,
-            'Permissões atualizadas com sucesso.'
+            'Profissional removido com sucesso.'
         );
     }
 }

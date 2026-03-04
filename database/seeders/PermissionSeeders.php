@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\Module;
+use App\Models\Permission;
 use Illuminate\Database\Seeder;
 
-class ModuleSeeders extends Seeder
+class PermissionSeeders extends Seeder
 {
     /**
      * Run the database seeds.
@@ -19,10 +19,11 @@ class ModuleSeeders extends Seeder
             ['name'=>'usuario','description'=>'Usuário'],
             ['name'=>'controle_acesso','description'=>'Controle de acesso'],
             ['name' => 'usuario', 'description' => 'Usuário'],
+            ['name' => 'profissional', 'description' => 'Profissional'],
         ];
 
         foreach($arrays as $array){
-            Module::updateOrCreate(["name"=>$array['name']], $array);
+            Permission::updateOrCreate(["name"=>$array['name']], $array);
         }
     }
 }

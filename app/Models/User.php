@@ -2,24 +2,31 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use Notifiable;
+    use Notifiable, SoftDeletes;
     
     protected $fillable = [
         'name',
         'username',
         'email',
-        'password'
+        'password',
+        'ativo'
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+    protected $appends =
+    [
+        'ativo_desc'
     ];
 
     public function roles()
@@ -32,19 +39,25 @@ class User extends Authenticatable implements JWTSubject
         return $this->roles()->whereIn('name', (array) $roles)->exists();
     }
 
-    public function hasPermission(string $permission): bool
+   public function hasPermission(string $permission): bool
     {
         if ($this->hasAnyRoles('admin')) {
             return true;
         }
 
-        [$moduleName, $action] = explode('.', $permission);
+        if (!str_contains($permission, '.')) {
+            return false;
+        }
 
-        return $this->roles()->whereHas('permissions', function ($query) use ($moduleName, $action) {
-            $query->whereHas('module', function ($q) use ($moduleName) {
-                $q->where('name', $moduleName);
-            })->where($action, true);
-        })->exists();
+        list($module, $action) = explode('.', $permission);
+
+        return $this->roles()
+            ->whereHas('permissionRoles', function ($query) use ($module, $action) {
+                $query->whereHas('permission', function ($q) use ($module) {
+                    $q->where('name', $module);
+                })->where($action, true);
+            })
+            ->exists();
     }
 
     public function getJWTIdentifier()
@@ -55,5 +68,16 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ACCESSORS
+    |--------------------------------------------------------------------------
+    */
+
+    public function getAtivoDescAttribute()
+    {
+        return $this->ativo ? 'Ativo' : 'Inativo';
     }
 }
